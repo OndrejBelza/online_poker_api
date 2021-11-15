@@ -4,6 +4,7 @@ import cors from "cors";
 import { Server } from "socket.io";
 import corsSettings from "./constants/corsSetting";
 import usersHandler from "./handlers/usersHandlers";
+import mongoose from "mongoose";
 
 const port = process.env.PORT;
 
@@ -17,6 +18,8 @@ const main = async () => {
   const server = app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });
+
+  await mongoose.connect(<string>process.env.MONGO_URL);
 
   // creates new instance of socket.io
   const io = new Server(server, {
