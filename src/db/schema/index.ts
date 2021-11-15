@@ -1,3 +1,3 @@
-import userSchema from './User';
+import { User } from "./User";
 
-export default userSchema;
+export default { User };
