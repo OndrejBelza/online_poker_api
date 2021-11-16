@@ -19,7 +19,7 @@ const main = async () => {
     console.log(`Server is listening on port ${port}`);
   });
 
-  await mongoose.connect(<string>process.env.MONGO_URL);
+  await mongoose.connect(process.env.MONGO_URL as string);
 
   // creates new instance of socket.io
   const io = new Server(server, {
