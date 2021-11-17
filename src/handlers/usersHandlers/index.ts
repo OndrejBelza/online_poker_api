@@ -1,8 +1,8 @@
 import { Socket } from "socket.io";
-import registrationHandler from "./actions/registration";
+import meHandler from "./actions/me";
 
 const usersHandler = (socket: Socket) => {
-  registrationHandler(socket);
+  meHandler(socket);
 };
 
 export default usersHandler;
