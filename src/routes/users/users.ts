@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { User } from "../../db/schema/User";
-import schema from "./utils/userSchemaValidator";
+import registrationSchema from "./utils/registrationSchemaValidator";
+import loginSchema from "./utils/loginSchemaValidator";
 import argon2 from "argon2";
 import { Session } from "../../types/session";
 const usersRouter = Router();
 
 usersRouter.post("/registration", async (req, res) => {
   try {
-    const validatedArgs = await schema.validate(req.body);
+    const validatedArgs = await registrationSchema.validate(req.body);
 
     // looks for users with same user name or email
     // we will require unique username and email
@@ -57,6 +58,34 @@ usersRouter.post("/registration", async (req, res) => {
     res.send();
   } catch (error: any) {
     res.status(400).send({
+      result: false,
+      error: {
+        type: error.name,
+        message: error.message,
+        path: error.path,
+      },
+    });
+  }
+});
+
+usersRouter.post("/login", async (req, res) => {
+  try {
+    const validatedArgs = await loginSchema.validate(req.body);
+    const user = await User.findOne({ email: validatedArgs.email });
+    if (!user || (await argon2.verify(user.password, validatedArgs.password)))
+      return res.status(400).send({
+        result: false,
+        error: {
+          type: "invalid_username_or_password",
+          message: "Invalid username or password",
+          path: null,
+        },
+      });
+
+    (req.session as Session).userId = user.id;
+    return res.send();
+  } catch (error: any) {
+    return res.status(400).send({
       result: false,
       error: {
         type: error.name,
