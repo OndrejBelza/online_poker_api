@@ -1,7 +1,4 @@
-import { Request } from "express";
 import { Socket } from "socket.io";
-import { User } from "../../../db/schema/User";
-import { Session } from "../../../types/session";
 
 const joinHandler = (socket: Socket) => {
   socket.on("join_game", async () => {
