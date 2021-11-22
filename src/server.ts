@@ -13,6 +13,7 @@ import usersHandler from "./handlers/usersHandlers";
 import router from "./routes/router";
 import bodyParser from "body-parser";
 import { Session } from "./types/session";
+import gameHandler from "./handlers/gameHandlers/intex";
 const port = process.env.PORT;
 
 const main = async () => {
@@ -75,6 +76,9 @@ const main = async () => {
 
     // handles all requests from user about users i.e. registration, login...
     usersHandler(socket);
+
+    // game handler
+    gameHandler(socket);
 
     // this function will be triggered when user will close connection
     socket.on("disconnect", () => {
