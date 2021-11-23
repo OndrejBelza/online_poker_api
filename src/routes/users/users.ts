@@ -4,6 +4,7 @@ import registrationSchema from "./utils/registrationSchemaValidator";
 import loginSchema from "./utils/loginSchemaValidator";
 import argon2 from "argon2";
 import { Session } from "../../types/session";
+import COOKIE_NAME from "../../constants/cookieName";
 const usersRouter = Router();
 
 usersRouter.post("/registration", async (req, res) => {
@@ -94,6 +95,28 @@ usersRouter.post("/login", async (req, res) => {
       },
     });
   }
+});
+
+usersRouter.get("/me", async (req, res) => {
+  const id = (req.session as Session).userId;
+  if (id) {
+    const user = await User.findById(id);
+    if (user)
+      return res.send({
+        username: user.username,
+        email: user.email,
+        id: user.id,
+      });
+  }
+  return res.send();
+});
+
+usersRouter.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    res.clearCookie(COOKIE_NAME);
+    if (err) return res.status(500).send("Logout unsuccessful");
+    else return res.send("Logout successful");
+  });
 });
 
 export default usersRouter;
