@@ -89,9 +89,9 @@ const userActionsHandler = (socket: Socket) => {
     //Fold
     socket.on("fold", async (id) => {
         console.log(`User ${id} folded`)
-        await pass(id);
+        pass(id);
         //Remove player from hand
-        const newplayers =  await data.players.filter((player)=>player.id!==id);
+        const newplayers =  data.players.filter((player)=>player.id!==id);
         const newData = {
             ...data,
             players: newplayers
