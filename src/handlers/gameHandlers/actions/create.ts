@@ -9,7 +9,8 @@ const createHandler = (socket: Socket) => {
     socket.join(`Room1`)
     socket.emit("game_data", {
         id: id,
-        pot: 123810000,
+        pot: 0,
+        currentBet: 0,
         deck:
             [{
                 value: "A",
