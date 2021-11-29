@@ -7,7 +7,7 @@ const joinHandler = (socket: Socket) => {
     //...
     // this adds user to room
     socket.join(`Room${id}`)
-    socket.emit("user_has_joined", "New user {username} has joined");
+    socket.in(`Room${id}`).emit("user_has_joined", "New user {username} has joined");
     // socket.emit("join_result", {});
   });
   

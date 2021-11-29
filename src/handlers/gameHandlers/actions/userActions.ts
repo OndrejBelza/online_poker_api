@@ -1,8 +1,11 @@
 import { Socket } from "socket.io";
 
+
+//Example table data
 let data = {
   id: "1",
-  pot: 123810000,
+  pot: 0,
+  currentBet: 0,
   deck:
       [{
           value: "A",
@@ -70,26 +73,91 @@ let data = {
   }]
 }
 
-
-
-
+function pass(id:number){
+    for (let i = 0; i<data.players.length;i++){
+        if(data.players[i]?.id===id) {
+             data.players[i]!.turn = false;
+             data.players[(i+1)%data.players.length]!.turn = true;
+             break;
+        }
+     }
+    return "Player" + id + "finished his turn"
+}
 
 const userActionsHandler = (socket: Socket) => {
-  socket.on("fold", async (id) => {
-    console.log(`User ${id} folded`)
-    // edit data in db
-    //...
-    // this adds user to room
-    // socket.join(`Room${id}`)
-    const newplayers = data.players.filter((player)=>player.id!==id);
-    const newData = {
-      ...data,
-      players: newplayers
-    }
-    console.log(newData.players)
-    socket.emit("game_data", newData);
-    // socket.emit("join_result", {});
-  });
+
+    //Fold
+    socket.on("fold", async (id) => {
+        console.log(`User ${id} folded`)
+        pass(id);
+        //Remove player from hand
+        const newplayers =  data.players.filter((player)=>player.id!==id);
+        const newData = {
+            ...data,
+            players: newplayers
+        }
+        
+        console.log(newData.players)
+        socket.emit("game_data", newData);
+
+    });
+    //check
+    socket.on("check", async (id) => {
+        console.log(`User ${id} checked`)
+        
+        //Pass turn
+        pass(id)
+
+        console.log(data.players)
+        socket.emit("game_data", data);
+
+    });
+
+    socket.on("call", async (id) => {
+        console.log(`User ${id} called`)
+
+        //Pass turn
+        pass(id)
+
+        //Bet same amount as currentBet
+        const newplayers = data.players.map((player)=>{
+            if (player.id===id) {
+                player.chips -= data.currentBet,
+                data.pot += data.currentBet
+            }
+            return player;
+        });
+        const newData = {
+            ...data,
+            players: newplayers
+        }
+        console.log(newData.players)
+        socket.emit("game_data", newData);
+
+    });
+
+    socket.on("bet/rise", async ({id,value}) => {
+        console.log(`User ${id} rised/bet ${value}`)
+        //Pass turn
+        pass(id)
+
+        //Bet or Rise
+        const newplayers = data.players.map((player)=>{
+            if (player.id===id) {
+                data.pot += (value - data.currentBet)
+                data.currentBet = value
+                player.chips -= value
+            }
+            return player;
+        });
+        const newData = {
+            ...data,
+            players: newplayers
+        }
+        console.log(newData.players)
+        socket.emit("game_data", newData);
+
+    });
   
 };
 
