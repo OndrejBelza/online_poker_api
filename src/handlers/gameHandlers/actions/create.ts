@@ -1,85 +1,54 @@
+import { Request } from "express";
 import { Socket } from "socket.io";
+import {
+  BIG_BLIND,
+  SMALL_BLIND,
+  STARTING_BALANCE,
+} from "../../../constants/intialGameValues";
+import { Room, User } from "../../../db/schema";
+import { Session } from "../../../types/session";
+
+interface CreateGameResponse {
+  id: string;
+}
 
 const createHandler = (socket: Socket) => {
-  socket.on("create_game", async (id) => {
-    console.log(`Game created with id = ${id}`)
-    // edit data in db
-    //...
-    // this adds user to room
-    socket.join(`Room1`)
-    socket.emit("game_data", {
-        id: id,
-        pot: 0,
-        currentBet: 0,
-        deck:
-            [{
-                value: "A",
-                suit: "hearts"
-            },{
-                value: "5",
-                suit: "clubs"
-            },{
-                value: "K",
-                suit: "hearts"
-            },{
-                value: "6",
-                suit: "spades"
-            },{
-                value: "6",
-                suit: "diamonds"
-            }]
-        ,
-        currentUser: "Gerardo",
-        players: [{
-            id: 1,
-            position: 1,
-            portrait: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-            name: "Gerardo",
-            skin: "default",
-            hand: [{
-                value: "A",
-                suit: "spades"
-            },{
-                value: "A",
-                suit: "clubs"
-            }],
-            chips: 100000,
-            turn: true
-        },{
-            id: 2,
-            position: 2,
-            name: "Taichi",
-            portrait: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-            skin: "default",
-            hand: [{
-                value: null,
-                suit: null
-            },{
-                value: null,
-                suit: null
-            }],
-            chips: 200000,
-            turn: false
-        },{
-            id: 3,
-            position: 3,
-            name: "Ondrej",
-            portrait: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-            skin: "default",
-            hand: [{
-                value: null,
-                suit: null
-            },{
-                value: null,
-                suit: null
-            }],
-            chips: 400000,
-            turn: false
-        }]
-    });
-    // socket.emit("join_result", {});
+  socket.on("create_game", async () => {
+    const session = (socket.request as Request).session as Session;
+
+    // if user is not logged in he is not able create new room
+    if (!session.userId) return;
+
+    const user = await User.findById(session.userId);
+
+    // or user was not found in db
+    if (!user) return;
+
+    // creates new instance of the game
+    var room = new Room();
+
+    // sets initial data for game
+    room.rnd_cnt = 0;
+    room.game_state = "WAITING";
+    room.deck = [];
+    room.card_on_table = [];
+    room.room_options = {
+      small_blind: SMALL_BLIND,
+      big_blind: BIG_BLIND,
+    };
+    room.current_player_id = undefined;
+    room.users = [];
+
+    await room.save();
+
+    console.log(`Game created with id = ${room._id}`);
+
+    const gameData: CreateGameResponse = {
+      id: room._id,
+    };
+
+    socket.emit("game_created", gameData);
   });
-  
 };
 
 export default createHandler;

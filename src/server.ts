@@ -78,7 +78,7 @@ const main = async () => {
     usersHandler(socket);
 
     // game handler
-    gameHandler(socket);
+    gameHandler(socket, io);
 
     // this function will be triggered when user will close connection
     socket.on("disconnect", () => {
