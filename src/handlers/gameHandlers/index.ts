@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import createHandler from "./actions/create";
 import joinHandler from "./actions/join";
+import startGameHandler from "./actions/startGame";
 import turnHandler from "./actions/turn";
 import userActionsHandler from "./actions/userActions";
 
@@ -13,6 +14,7 @@ const gameHandler = (
   turnHandler(socket);
   createHandler(socket);
   userActionsHandler(socket);
+  startGameHandler(socket, io);
 };
 
 export default gameHandler;

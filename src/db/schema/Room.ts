@@ -1,45 +1,54 @@
 import mongoose from "mongoose";
 
 interface User {
-  user_id: string;
+  userId: string;
   username: string;
   position: number;
-  current_balance: number;
-  current_bet: number | undefined;
-  current_hand: Card[] | undefined;
+  currentBalance: number;
+  currentBet: number | undefined;
+  currentHand: Card[] | undefined;
 }
 interface Card {
   value: number;
   suit: string;
 }
 interface Room {
-  game_state: "WAITING" | "IN_PROGRESS" | "FINISHED";
-  rnd_cnt: number; // number of current round
+  gameState: "WAITING" | "IN_PROGRESS" | "FINISHED";
+  roomType: "PUBLIC" | "PRIVATE";
+  rndCnt: number; // number of current round
   deck: Card[]; // array of cards
-  card_on_table: Card[]; // array of visible cards for all users
-  users: User[]; // array of players in the game
-  room_options: Room_Options;
-  current_player_id: string | undefined;
+  cardsOnTable: Card[]; // array of visible cards for all users
+  players: User[]; // array of players in the game
+  roomOptions: Room_Options;
+  currentPlayerId: string | undefined;
+  creatorUserId: string;
   pot: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface Room_Options {
-  big_blind: Number;
-  small_blind: Number;
+  bigBlind: Number;
+  smallBlind: Number;
 }
 
-export const roomSchema = new mongoose.Schema<Room>({
-  rnd_cnt: Number,
-  deck: Array,
-  card_on_table: Array,
-  users: Array,
-  room_options: Object,
-  game_state: String,
-  pot: Number,
-  current_player_id: {
-    type: String,
-    required: false,
+export const roomSchema = new mongoose.Schema<Room>(
+  {
+    rndCnt: Number,
+    roomType: String,
+    deck: Array,
+    cardsOnTable: Array,
+    players: Array,
+    roomOptions: Object,
+    gameState: String,
+    pot: Number,
+    creatorUserId: String,
+    currentPlayerId: {
+      type: String,
+      required: false,
+    },
   },
-});
+  { timestamps: true }
+);
 
 export const Room = mongoose.model<Room>("Room", roomSchema);

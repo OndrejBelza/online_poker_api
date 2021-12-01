@@ -16,10 +16,10 @@ interface Player {
 }
 interface GameData {
   id: string;
-  game_state: "WAITING" | "IN_PROGRESS" | "FINISHED";
-  current_pot: number;
+  gameState: "WAITING" | "IN_PROGRESS" | "FINISHED";
+  currentPot: number;
   players: Player[];
-  current_player_id: string | undefined;
+  currentPlayerId: string | undefined;
 }
 
 const loadDataHandler = (socket: Socket) => {
@@ -42,22 +42,22 @@ const loadDataHandler = (socket: Socket) => {
 
     // if room doesn't exist we will not join him to the game
     // or if user is not joined in the game
-    if (!room || !room.users.some((u) => u.user_id === user._id)) return;
+    if (!room || !room.players.some((p) => p.userId === user._id)) return;
 
     const data: GameData = {
       id: room._id,
-      game_state: room.game_state,
-      current_player_id: room.current_player_id,
-      current_pot: room.pot,
-      players: room.users.map((u) => {
+      gameState: room.gameState,
+      currentPlayerId: room.currentPlayerId,
+      currentPot: room.pot,
+      players: room.players.map((u) => {
         return {
-          id: u.user_id,
+          id: u.userId,
           username: u.username,
           position: u.position,
-          chips: u.current_balance,
-          current_bet: u.current_bet,
-          hand: u.current_hand?.map((c) => {
-            if (u.user_id === user._id)
+          chips: u.currentBalance,
+          current_bet: u.currentBet,
+          hand: u.currentHand?.map((c) => {
+            if (u.userId === user._id)
               return {
                 value: c.value,
                 suit: c.suit,
