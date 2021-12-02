@@ -66,6 +66,17 @@ const main = async () => {
 
   io.use(wrap(sessionMiddleware));
 
+  // This will check if user is logged in and if user is logged in
+  // it will check if user is in room designated for communicating
+  // with this specific user
+  io.use((socket, next) => {
+    const session = (socket.request as Request).session as Session;
+    if (session.userId && !socket.rooms.has(`User_${session.userId}`)) {
+      socket.join(`User_${session.userId}`);
+    }
+    next();
+  });
+
   // listens to connection from clients
   io.on("connection", (socket) => {
     // access to session

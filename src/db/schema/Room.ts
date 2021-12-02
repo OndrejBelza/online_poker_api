@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import Card from "../../interfaces/Card";
 interface User {
   userId: string;
   username: string;
@@ -7,10 +7,6 @@ interface User {
   currentBalance: number;
   currentBet: number | undefined;
   currentHand: Card[] | undefined;
-}
-interface Card {
-  value: number;
-  suit: string;
 }
 interface Room {
   gameState: "WAITING" | "IN_PROGRESS" | "FINISHED";
