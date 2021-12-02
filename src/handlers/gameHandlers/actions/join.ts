@@ -38,9 +38,10 @@ const joinHandler = (socket: Socket) => {
       currentHand: undefined,
     });
 
-    room.save();
+    await room.save();
 
     socket.join(`Room_${id}`);
+    socket.emit("room_joined", room._id);
     socket
       .in(`Room_${id}`)
       .emit("user_has_joined", `New user ${user.username} has joined`);

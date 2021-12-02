@@ -3,7 +3,7 @@ import { Socket } from "socket.io";
 import { Room, User } from "../../../db/schema";
 import { Session } from "../../../types/session";
 interface Card {
-  value: number | undefined;
+  value: string | undefined;
   suit: string | undefined;
 }
 interface Player {
