@@ -1,10 +1,6 @@
 import { Request } from "express";
 import { Socket } from "socket.io";
-import {
-  BIG_BLIND,
-  SMALL_BLIND,
-  STARTING_BALANCE,
-} from "../../../constants/intialGameValues";
+import { BIG_BLIND, SMALL_BLIND } from "../../../constants/intialGameValues";
 import { Room, User } from "../../../db/schema";
 import { Session } from "../../../types/session";
 
@@ -12,12 +8,17 @@ interface CreateGameResponse {
   id: string;
 }
 
+type CreateGameRequest = {
+  gameType: "PRIVATE" | "PUBLIC";
+};
+
 const createHandler = (socket: Socket) => {
-  socket.on("create_game", async () => {
+  socket.on("create_game", async (opts: CreateGameRequest) => {
     const session = (socket.request as Request).session as Session;
 
     // if user is not logged in he is not able create new room
-    if (!session.userId) return;
+    // or user didn't provide all data
+    if (!session.userId || !opts) return;
 
     const user = await User.findById(session.userId);
 
@@ -28,16 +29,18 @@ const createHandler = (socket: Socket) => {
     var room = new Room();
 
     // sets initial data for game
-    room.rnd_cnt = 0;
-    room.game_state = "WAITING";
+    room.rndCnt = 0;
+    room.gameState = "WAITING";
+    room.roomType = opts.gameType;
     room.deck = [];
-    room.card_on_table = [];
-    room.room_options = {
-      small_blind: SMALL_BLIND,
-      big_blind: BIG_BLIND,
+    room.cardsOnTable = [];
+    room.roomOptions = {
+      smallBlind: SMALL_BLIND,
+      bigBlind: BIG_BLIND,
     };
-    room.current_player_id = undefined;
-    room.users = [];
+    room.currentPlayerId = undefined;
+    room.creatorUserId = user._id;
+    room.players = [];
 
     await room.save();
 

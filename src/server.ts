@@ -13,7 +13,7 @@ import usersHandler from "./handlers/usersHandlers";
 import router from "./routes/router";
 import bodyParser from "body-parser";
 import { Session } from "./types/session";
-import gameHandler from "./handlers/gameHandlers/intex";
+import gameHandler from "./handlers/gameHandlers";
 const port = process.env.PORT;
 
 const main = async () => {

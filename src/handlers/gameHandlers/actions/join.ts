@@ -17,20 +17,25 @@ const joinHandler = (socket: Socket) => {
     // if user doesn't exist we will not join him to the game
     if (!user) return;
 
-    console.log(`User ${session.userId} is joining room Room_${id}`);
+    var room;
+    if (id) {
+      console.log(`User ${session.userId} is joining room Room_${id}`);
 
-    const room = await Room.findById(id);
+      room = await Room.findById(id);
+    } else {
+      room = await Room.findOne({ room_type: "PUBLIC" }).sort("updatedAt");
+    }
 
     // if room doesn't exist we will not join him to the game
     if (!room) return;
 
-    room.users.push({
-      user_id: user._id,
+    room.players.push({
+      userId: user._id,
       username: user.username,
-      position: findFirstPosition(room.users),
-      current_balance: STARTING_BALANCE,
-      current_bet: undefined,
-      current_hand: undefined,
+      position: findFirstPosition(room.players),
+      currentBalance: STARTING_BALANCE,
+      currentBet: undefined,
+      currentHand: undefined,
     });
 
     room.save();
