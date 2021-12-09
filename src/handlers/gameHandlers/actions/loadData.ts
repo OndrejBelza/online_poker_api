@@ -71,7 +71,6 @@ const loadDataHandler = (socket: Socket) => {
     };
 
     socket.emit("game_data", data);
-    socket.in(`Room_${id}`).emit("game_data", data);
   });
 };
 
