@@ -25,7 +25,6 @@ interface GameData {
 const loadDataHandler = (socket: Socket) => {
   socket.on("get_game_data", async (id) => {
     const session = (socket.request as Request).session as Session;
-
     // if user is not logged in we will not join him to the game
     if (!session.userId) return;
 
@@ -39,11 +38,11 @@ const loadDataHandler = (socket: Socket) => {
     );
 
     const room = await Room.findById(id);
-
+    
     // if room doesn't exist we will not join him to the game
     // or if user is not joined in the game
-    if (!room || !room.players.some((p) => p.userId === user._id)) return;
-
+    if (!room || !room.players.some((p) => p.userId.toString() === user._id.toString())) return;
+    
     const data: GameData = {
       id: room._id,
       gameState: room.gameState,
@@ -72,6 +71,7 @@ const loadDataHandler = (socket: Socket) => {
     };
 
     socket.emit("game_data", data);
+    socket.in(`Room_${id}`).emit("game_data", data);
   });
 };
 
