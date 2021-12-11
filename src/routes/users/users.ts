@@ -2,7 +2,7 @@ import { Router } from "express";
 import { User } from "../../db/schema/User";
 import registrationSchema from "./utils/registrationSchemaValidator";
 import loginSchema from "./utils/loginSchemaValidator";
-// import editProfileSchema from "./utils/editProfileSchemaValidator";
+import editProfileSchema from "./utils/editProfileSchemaValidator";
 import argon2 from "argon2";
 import { Session } from "../../types/session";
 import COOKIE_NAME from "../../constants/cookieName";
@@ -120,11 +120,14 @@ usersRouter.post("/logout", (req, res) => {
   });
 });
 
-// usersRouter.post("/edit-profile", async (req, res) => {
-//   try {
-//     const validatedArgs = await editProfileSchema.validate(req.body);
-//     const user = await User.findOne({ email: validatedArgs.email });
-//   } catch {}
-// });
+usersRouter.post("/edit_profile", async (req, res) => {
+  try {
+    const id = (req.session as Session).userId;
+    if (id) {
+      const validatedArgs = await editProfileSchema.validate(req.body);
+      const user = await User.findOne({ id: validatedArgs.id });
+    }
+  } catch {}
+});
 
 export default usersRouter;
