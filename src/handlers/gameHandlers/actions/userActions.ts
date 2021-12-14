@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { Room } from "../../../db/schema";
 import roundHandler from "./round";
 
-var turnCount = 0;
+var turnCount = 1;
 
 const userActionsHandler = async (socket: Socket) => {
 
@@ -25,14 +25,15 @@ const userActionsHandler = async (socket: Socket) => {
 
         room.markModified("players");
         
-        turnCount++;
 
         if (turnCount >= room.players.length) {
-            turnCount = 0;
+            turnCount = 1;
             room.rndCnt++
             await room.save();
             roundHandler(socket,roomId)
-        }
+        } else {
+            turnCount++;
+        } 
 
         await room.save();
 
@@ -58,13 +59,15 @@ const userActionsHandler = async (socket: Socket) => {
 
         room.markModified("players");
         
-        turnCount++;
+        
 
         if (turnCount >= room.players.length) {
-            turnCount = 0;
+            turnCount = 1;
             room.rndCnt++
             await room.save();
             roundHandler(socket,roomId)
+        } else {
+            turnCount++;
         }
 
         await room.save();
@@ -92,15 +95,18 @@ const userActionsHandler = async (socket: Socket) => {
 
         room.markModified("players");
         
-        turnCount++;
+        
 
         if (turnCount >= room.players.length) {
-            turnCount = 0;
+            turnCount = 1;
             room.rndCnt++
             await room.save();
             roundHandler(socket,roomId)
+        } else {
+            turnCount++;
         }
 
+        
         await room.save();
 
         socket.emit("player_action");
@@ -127,8 +133,8 @@ const userActionsHandler = async (socket: Socket) => {
         room.markModified("players");
         await room.save();
         //start betting Round
-        turnCount = 0;
-
+        turnCount = 2;
+        console.log(turnCount)
         socket.emit("player_action");
         socket.in(`Room_${roomId}`).emit("player_action")
     });
