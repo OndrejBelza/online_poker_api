@@ -9,15 +9,18 @@ interface Card {
 interface Player {
   id: string;
   position: number;
+  turn: boolean;
   chips: number;
   username: string;
   current_bet: number | undefined;
+  current_action: string | null;
   hand: Card[] | undefined;
 }
 interface GameData {
   id: string;
   gameState: "WAITING" | "IN_PROGRESS" | "FINISHED";
   currentPot: number;
+  cardsOnTable: Card[];
   players: Player[];
   currentPlayerId: string | undefined;
 }
@@ -46,17 +49,20 @@ const loadDataHandler = (socket: Socket) => {
     const data: GameData = {
       id: room._id,
       gameState: room.gameState,
-      currentPlayerId: room.currentPlayerId,
+      currentPlayerId: user._id.toString(),
       currentPot: room.pot,
+      cardsOnTable: room.cardsOnTable,
       players: room.players.map((u) => {
         return {
           id: u.userId,
           username: u.username,
           position: u.position,
+          turn: u.turn,
           chips: u.currentBalance,
           current_bet: u.currentBet,
+          current_action: u.current_action,
           hand: u.currentHand?.map((c) => {
-            if (u.userId === user._id)
+            if (u.userId.toString() === user._id.toString())
               return {
                 value: c.value,
                 suit: c.suit,

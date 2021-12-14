@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Room } from "../../../db/schema";
 import { Session } from "../../../types/session";
+import roundHandler from "./round";
 import { createDeck, shuffleDeck } from "./utils/deckUtils";
 
 const startGameHandler = (
@@ -16,13 +17,13 @@ const startGameHandler = (
 
     // checks if user is logged in
     if (!id || !session.userId) return;
-
+    
     // finds room
     const room = await Room.findById(id);
-
+  
     // checks if user is creator of that room
     if (!room || room.creatorUserId !== session.userId || !room.players) return;
-
+    
     // game can be started only of there are two or more players
     // I will add this later
     // if (room.players.length < 2)
@@ -77,11 +78,17 @@ const startGameHandler = (
             card: { value: undefined, suit: undefined },
           });
         }
-
         room.markModified("players");
         await room.save();
+    
       }
     }
+    socket.emit("game_started");
+        socket
+          .in(`Room_${id}`)
+          .emit("game_started");
+
+    roundHandler(socket,id)
   });
 };
 

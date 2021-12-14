@@ -4,6 +4,8 @@ interface User {
   userId: string;
   username: string;
   position: number;
+  turn: boolean;
+  current_action: string | null;
   currentBalance: number;
   currentBet: number | undefined;
   currentHand: Card[] | undefined;
