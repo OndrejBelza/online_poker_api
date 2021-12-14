@@ -12,7 +12,6 @@ const schema = Yup.object().shape({
   newPassword: Yup.string()
     .required("Required")
     .min(8, "Password must be at least 8 characters long"),
-  id: Yup.string().required("Required"),
 });
 
 export default schema;
