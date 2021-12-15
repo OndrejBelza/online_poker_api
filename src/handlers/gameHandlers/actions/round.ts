@@ -49,7 +49,19 @@ const roundHandler = async (socket: Socket, id: String) => {
             }
             break;    
         case 4:
-            console.log("Game finished!!");
+            socket.emit("game_finished","player XYZ won");
+            room.rndCnt = 0;
+            room.gameState = "WAITING";
+            room.pot = 0;
+            room.deck = [];
+            room.cardsOnTable = [];
+            room.currentRoundBet = 0;
+            for (let player of room.players) {
+                player.turn = false;
+                player.current_action = null;
+                player.currentBet = undefined;
+                player.currentHand = undefined;
+            }
             break;
         default:
             break;

@@ -14,32 +14,28 @@ const userActionsHandler = async (socket: Socket) => {
 
         console.log(`User ${id} folded`)
 
-        let newRoom = [];
-
-        for (let i = 0; i<room.players.length;i++){
-            if(room.players[i]?.userId.toString()===id) {
-                room.players[i]!.turn = false;
-                room.players[i]!.current_action = "fold"
-                
-                for (let j = i; j<room.players.length+i;j++){
-                    newRoom[j-i] = room.players[(j+1)%room.players.length]
-                }
-                let nextplayer = newRoom.find(player => player?.current_action !== "fold")
-                for (let player of room.players) {
-                    if (nextplayer?.userId.toString() === player.userId.toString()){
-                        player.turn = true;
-                    }
-                }
-                // room.players[(i+1)%room.players.length]!.turn = true;
-
+        let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
+        for (let i = 0; i<currentPlayers.length;i++){
+            if(currentPlayers[i]?.userId.toString()===id) {
+                currentPlayers[i]!.turn = false;
+                currentPlayers[i]!.current_action = "fold"
+                currentPlayers[(i+1)%currentPlayers.length]!.turn = true;
                 break;
             }
         }
+        room.players.map(player => {
+            let plyr = currentPlayers.find(p=>p.userId.toString() === player.userId.toString())
+            if (plyr){
+                return plyr
+            } else {
+                return player
+            }
+        })
 
         room.markModified("players");
         
 
-        if (turnCount >= room.players.length) {
+        if (turnCount >= currentPlayers.length) {
             turnCount = 1;
             room.rndCnt++
             await room.save();
@@ -59,32 +55,28 @@ const userActionsHandler = async (socket: Socket) => {
         if (!room) return;
 
         console.log(`User ${id} checked`)
-        let newRoom = [];
-        for (let i = 0; i<room.players.length;i++){
-            if(room.players[i]?.userId.toString()===id) {
-                room.players[i]!.turn = false;
-                room.players[i]!.current_action = "check"
 
-                for (let j = i; j<room.players.length+i;j++){
-                    newRoom[j-i] = room.players[(j+1)%room.players.length]
-                }
-                let nextplayer = newRoom.find(player => player?.current_action !== "fold")
-                for (let player of room.players) {
-                    if (nextplayer?.userId.toString() === player.userId.toString()){
-                        player.turn = true;
-                    }
-                }
-
-                // room.players[(i+1)%room.players.length]!.turn = true;
+        let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
+        for (let i = 0; i<currentPlayers.length;i++){
+            if(currentPlayers[i]?.userId.toString()===id) {
+                currentPlayers[i]!.turn = false;
+                currentPlayers[i]!.current_action = "check"
+                currentPlayers[(i+1)%currentPlayers.length]!.turn = true;
                 break;
             }
         }
-
+        room.players.map(player => {
+            let plyr = currentPlayers.find(p=>p.userId.toString() === player.userId.toString())
+            if (plyr){
+                return plyr
+            } else {
+                return player
+            }
+        })
         room.markModified("players");
         
-        
 
-        if (turnCount >= room.players.length) {
+        if (turnCount >= currentPlayers.length) {
             turnCount = 1;
             room.rndCnt++
             await room.save();
@@ -106,32 +98,40 @@ const userActionsHandler = async (socket: Socket) => {
         if (!room) return;
 
         console.log(`User ${id} called`)
-        
-        for (let i = 0; i<room.players.length;i++){
-            if(room.players[i]?.userId.toString()===id) {
-                room.players[i]!.turn = false;
-                room.players[i]!.current_action = "call"
-                if (!room.players[i]!.currentBet) room.players[i]!.currentBet = 0;
-                if (room.players[i]!.currentBet! > room.players[i]!.currentBalance) {
-                    room.pot += room.players[i]!.currentBalance;
-                    room.players[i]!.currentBet = room.players[i]!.currentBalance;
-                    room.players[i]!.currentBalance = 0;
+
+        let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
+        for (let i = 0; i<currentPlayers.length;i++){
+            if(currentPlayers[i]?.userId.toString()===id) {
+                currentPlayers[i]!.turn = false;
+                currentPlayers[i]!.current_action = "call"
+                if (!currentPlayers[i]!.currentBet) currentPlayers[i]!.currentBet = 0;
+                if (currentPlayers[i]!.currentBet! > currentPlayers[i]!.currentBalance) {
+                    room.pot += currentPlayers[i]!.currentBalance;
+                    currentPlayers[i]!.currentBet =currentPlayers[i]!.currentBalance;
+                    currentPlayers[i]!.currentBalance = 0;
                 } else {
-                    room.players[i]!.currentBalance -= (room.currentRoundBet - room.players[i]!.currentBet!);
-                    room.pot += (room.currentRoundBet - room.players[i]!.currentBet!);
-                    room.players[i]!.currentBet = room.currentRoundBet;
+                    currentPlayers[i]!.currentBalance -= (room.currentRoundBet - currentPlayers[i]!.currentBet!);
+                    room.pot += (room.currentRoundBet - currentPlayers[i]!.currentBet!);
+                    currentPlayers[i]!.currentBet = room.currentRoundBet;
                 }
                 
-                room.players[(i+1)%room.players.length]!.turn = true;
+                currentPlayers[(i+1)%currentPlayers.length]!.turn = true;
                 break;
             }
         }
-
+        room.players.map(player => {
+            let plyr = currentPlayers.find(p=>p.userId.toString() === player.userId.toString())
+            if (plyr){
+                return plyr
+            } else {
+                return player
+            }
+        })
         room.markModified("players");
         
         
 
-        if (turnCount >= room.players.length) {
+        if (turnCount >= currentPlayers.length) {
             turnCount = 1;
             room.rndCnt++
             await room.save();
@@ -154,27 +154,34 @@ const userActionsHandler = async (socket: Socket) => {
         if (!room) return;
 
         console.log(`User ${id} rised/bet ${value}`)
-
-        for (let i = 0; i<room.players.length;i++){
-            if(room.players[i]?.userId.toString()===id) {
-                if (value > room.players[i]!.currentBalance) value = room.players[i]!.currentBalance;
-                room.players[i]!.turn = false;
-                room.players[i]!.current_action = "bet/rise";
-                if (!room.players[i]!.currentBet) room.players[i]!.currentBet = 0;
+        let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
+        for (let i = 0; i<currentPlayers.length;i++){
+            if(currentPlayers[i]?.userId.toString()===id) {
+                if (value > currentPlayers[i]!.currentBalance) value = currentPlayers[i]!.currentBalance;
+                currentPlayers[i]!.turn = false;
+                currentPlayers[i]!.current_action = "bet/rise";
+                if (!currentPlayers[i]!.currentBet) currentPlayers[i]!.currentBet = 0;
                 room.currentRoundBet = value;
-                room.players[i]!.currentBalance -= (value - room.players[i]!.currentBet!);
-                room.pot += (room.currentRoundBet - room.players[i]!.currentBet!);
-                room.players[i]!.currentBet = room.currentRoundBet;
-                room.players[(i+1)%room.players.length]!.turn = true;
+                currentPlayers[i]!.currentBalance -= (value - currentPlayers[i]!.currentBet!);
+                room.pot += (room.currentRoundBet - currentPlayers[i]!.currentBet!);
+                currentPlayers[i]!.currentBet = room.currentRoundBet;
+                currentPlayers[(i+1)%currentPlayers.length]!.turn = true;
                 break;
             }
         }
-        
+        room.players.map(player => {
+            let plyr = currentPlayers.find(p=>p.userId.toString() === player.userId.toString())
+            if (plyr){
+                return plyr
+            } else {
+                return player
+            }
+        })
         room.markModified("players");
         await room.save();
         //start betting Round
         turnCount = 2;
-        console.log(turnCount)
+
         socket.emit("player_action");
         socket.in(`Room_${roomId}`).emit("player_action")
     });

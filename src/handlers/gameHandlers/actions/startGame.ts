@@ -61,23 +61,23 @@ const startGameHandler = (
 
         player.currentHand.push(card);
 
-        // emit event to selected user with values of that card
-        io.to(`User_${player.userId}`).emit("deal_card", {
-          playerId: player.userId,
-          card: { value: card.value, suit: card.suit },
-        });
+        // // emit event to selected user with values of that card
+        // io.to(`User_${player.userId}`).emit("deal_card", {
+        //   playerId: player.userId,
+        //   card: { value: card.value, suit: card.suit },
+        // });
 
-        let otherPlayers = room.players.filter(
-          (p) => p.userId !== player.userId
-        );
+        // let otherPlayers = room.players.filter(
+        //   (p) => p.userId !== player.userId
+        // );
 
-        // emit event to other users without the card details
-        for (let otherPlayer of otherPlayers) {
-          io.in(`User_${otherPlayer.userId}`).emit("deal_card", {
-            playerId: player.userId,
-            card: { value: undefined, suit: undefined },
-          });
-        }
+        // // emit event to other users without the card details
+        // for (let otherPlayer of otherPlayers) {
+        //   io.in(`User_${otherPlayer.userId}`).emit("deal_card", {
+        //     playerId: player.userId,
+        //     card: { value: undefined, suit: undefined },
+        //   });
+        // }
         room.markModified("players");
         await room.save();
     
