@@ -2,6 +2,7 @@ import { Router } from "express";
 import { User } from "../../db/schema/User";
 import registrationSchema from "./utils/registrationSchemaValidator";
 import loginSchema from "./utils/loginSchemaValidator";
+import editProfileSchema from "./utils/editProfileSchemaValidator";
 import argon2 from "argon2";
 import { Session } from "../../types/session";
 import COOKIE_NAME from "../../constants/cookieName";
@@ -117,6 +118,44 @@ usersRouter.post("/logout", (req, res) => {
     if (err) return res.status(500).send("Logout unsuccessful");
     else return res.send("Logout successful");
   });
+});
+
+usersRouter.post("/edit_profile", async (req, res) => {
+  try {
+    const id = (req.session as Session).userId;
+    if (id) {
+      const validatedArgs = await editProfileSchema.validate(req.body);
+      const user = await User.findById(id);
+
+      if (
+        !user ||
+        !(await argon2.verify(user.password, validatedArgs.currentPassword))
+      ) {
+        return res.status(400).send({
+          result: false,
+          error: {
+            type: "invalid_password",
+            message: "Invalid password",
+            path: null,
+          },
+        });
+      }
+      user.password = await argon2.hash(validatedArgs.newPassword);
+      user.username = validatedArgs.username;
+      user.email = validatedArgs.email;
+      await user.save();
+    }
+    return res.send();
+  } catch (error: any) {
+    return res.status(400).send({
+      result: false,
+      error: {
+        type: error.name,
+        message: error.message,
+        path: error.path,
+      },
+    });
+  }
 });
 
 export default usersRouter;
