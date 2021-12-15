@@ -5,6 +5,7 @@ import roundHandler from "./round";
 var turnCount = 1;
 
 const userActionsHandler = async (socket: Socket) => {
+    
     //Fold
     socket.on("fold", async ({roomId, id}) => {
         if (!roomId) return;
@@ -12,12 +13,25 @@ const userActionsHandler = async (socket: Socket) => {
         if (!room) return;
 
         console.log(`User ${id} folded`)
-        
+
+        let newRoom = [];
+
         for (let i = 0; i<room.players.length;i++){
             if(room.players[i]?.userId.toString()===id) {
                 room.players[i]!.turn = false;
                 room.players[i]!.current_action = "fold"
-                room.players[(i+1)%room.players.length]!.turn = true;
+                
+                for (let j = i; j<room.players.length+i;j++){
+                    newRoom[j-i] = room.players[(j+1)%room.players.length]
+                }
+                let nextplayer = newRoom.find(player => player?.current_action !== "fold")
+                for (let player of room.players) {
+                    if (nextplayer?.userId.toString() === player.userId.toString()){
+                        player.turn = true;
+                    }
+                }
+                // room.players[(i+1)%room.players.length]!.turn = true;
+
                 break;
             }
         }
@@ -45,12 +59,23 @@ const userActionsHandler = async (socket: Socket) => {
         if (!room) return;
 
         console.log(`User ${id} checked`)
-
+        let newRoom = [];
         for (let i = 0; i<room.players.length;i++){
             if(room.players[i]?.userId.toString()===id) {
                 room.players[i]!.turn = false;
                 room.players[i]!.current_action = "check"
-                room.players[(i+1)%room.players.length]!.turn = true;
+
+                for (let j = i; j<room.players.length+i;j++){
+                    newRoom[j-i] = room.players[(j+1)%room.players.length]
+                }
+                let nextplayer = newRoom.find(player => player?.current_action !== "fold")
+                for (let player of room.players) {
+                    if (nextplayer?.userId.toString() === player.userId.toString()){
+                        player.turn = true;
+                    }
+                }
+
+                // room.players[(i+1)%room.players.length]!.turn = true;
                 break;
             }
         }
