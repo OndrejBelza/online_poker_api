@@ -5,7 +5,6 @@ import roundHandler from "./round";
 var turnCount = 1;
 
 const userActionsHandler = async (socket: Socket) => {
-
     //Fold
     socket.on("fold", async ({roomId, id}) => {
         if (!roomId) return;
@@ -34,9 +33,8 @@ const userActionsHandler = async (socket: Socket) => {
         } else {
             turnCount++;
         } 
-
         await room.save();
-
+        
         socket.emit("player_action");
         socket.in(`Room_${roomId}`).emit("player_action")
     });
@@ -88,6 +86,17 @@ const userActionsHandler = async (socket: Socket) => {
             if(room.players[i]?.userId.toString()===id) {
                 room.players[i]!.turn = false;
                 room.players[i]!.current_action = "call"
+                if (!room.players[i]!.currentBet) room.players[i]!.currentBet = 0;
+                if (room.players[i]!.currentBet! > room.players[i]!.currentBalance) {
+                    room.pot += room.players[i]!.currentBalance;
+                    room.players[i]!.currentBet = room.players[i]!.currentBalance;
+                    room.players[i]!.currentBalance = 0;
+                } else {
+                    room.players[i]!.currentBalance -= (room.currentRoundBet - room.players[i]!.currentBet!);
+                    room.pot += (room.currentRoundBet - room.players[i]!.currentBet!);
+                    room.players[i]!.currentBet = room.currentRoundBet;
+                }
+                
                 room.players[(i+1)%room.players.length]!.turn = true;
                 break;
             }
@@ -123,13 +132,19 @@ const userActionsHandler = async (socket: Socket) => {
 
         for (let i = 0; i<room.players.length;i++){
             if(room.players[i]?.userId.toString()===id) {
+                if (value > room.players[i]!.currentBalance) value = room.players[i]!.currentBalance;
                 room.players[i]!.turn = false;
-                room.players[i]!.current_action = "bet/rise"
+                room.players[i]!.current_action = "bet/rise";
+                if (!room.players[i]!.currentBet) room.players[i]!.currentBet = 0;
+                room.currentRoundBet = value;
+                room.players[i]!.currentBalance -= (value - room.players[i]!.currentBet!);
+                room.pot += (room.currentRoundBet - room.players[i]!.currentBet!);
+                room.players[i]!.currentBet = room.currentRoundBet;
                 room.players[(i+1)%room.players.length]!.turn = true;
                 break;
             }
         }
-
+        
         room.markModified("players");
         await room.save();
         //start betting Round

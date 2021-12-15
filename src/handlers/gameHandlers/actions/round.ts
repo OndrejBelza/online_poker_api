@@ -15,36 +15,47 @@ const roundHandler = async (socket: Socket, id: String) => {
     switch (room.rndCnt) {
         case 0:
             room.players[0]!.turn = true;
-            room.markModified("players");
             break;
         case 1:
             for (let i=0;i<3;i++){
                 var card = room.deck.shift();
                 if (!card) break;
                 room.cardsOnTable.push(card);
+                room.currentRoundBet= 0;
             }
-            break;
-        case 1:
-            for (let i=0;i<3;i++){
-                var card = room.deck.shift();
-                if (!card) break;
-                room.cardsOnTable.push(card);
+            for (let player of room.players) {
+                player.currentBet = 0;
+                if (player.current_action != "fold") player.current_action = null;
             }
             break;
         case 2:
             var card = room.deck.shift();
             if (!card) break;
             room.cardsOnTable.push(card);
+            room.currentRoundBet= 0;
+            for (let player of room.players) {
+                player.currentBet = 0;
+                if (player.current_action != "fold") player.current_action = null;
+            }
             break;
         case 3:
             var card = room.deck.shift();
             if (!card) break;
             room.cardsOnTable.push(card);
+            room.currentRoundBet= 0;
+            for (let player of room.players) {
+                player.currentBet = 0;
+                if (player.current_action != "fold") player.current_action = null;
+            }
             break;    
+        case 4:
+            console.log("Game finished!!");
+            break;
         default:
             break;
     }
 
+    room.markModified("players");
     await room.save();
 
     socket.emit("round_started")

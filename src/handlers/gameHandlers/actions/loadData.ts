@@ -23,6 +23,7 @@ interface GameData {
   cardsOnTable: Card[];
   players: Player[];
   currentPlayerId: string | undefined;
+  currentRoundBet: number;
 }
 
 const loadDataHandler = (socket: Socket) => {
@@ -45,12 +46,13 @@ const loadDataHandler = (socket: Socket) => {
     // if room doesn't exist we will not join him to the game
     // or if user is not joined in the game
     if (!room || !room.players.some((p) => p.userId.toString() === user._id.toString())) return;
-    
+
     const data: GameData = {
       id: room._id,
       gameState: room.gameState,
       currentPlayerId: user._id.toString(),
       currentPot: room.pot,
+      currentRoundBet: room.currentRoundBet,
       cardsOnTable: room.cardsOnTable,
       players: room.players.map((u) => {
         return {

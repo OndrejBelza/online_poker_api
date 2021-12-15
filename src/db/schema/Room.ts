@@ -20,6 +20,7 @@ interface Room {
   roomOptions: Room_Options;
   currentPlayerId: string | undefined;
   creatorUserId: string;
+  currentRoundBet: number;
   pot: number;
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +42,7 @@ export const roomSchema = new mongoose.Schema<Room>(
     gameState: String,
     pot: Number,
     creatorUserId: String,
+    currentRoundBet: Number,
     currentPlayerId: {
       type: String,
       required: false,
