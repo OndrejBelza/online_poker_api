@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { Socket } from "socket.io";
-import { BIG_BLIND, SMALL_BLIND } from "../../../constants/intialGameValues";
+// import { BIG_BLIND, SMALL_BLIND } from "../../../constants/intialGameValues";
 import { Room, User } from "../../../db/schema";
 import { Session } from "../../../types/session";
 
@@ -13,7 +13,7 @@ type CreateGameRequest = {
 };
 
 const createHandler = (socket: Socket) => {
-  socket.on("create_game", async (opts: CreateGameRequest) => {
+  socket.on("create_game", async (opts: CreateGameRequest,value) => {
     const session = (socket.request as Request).session as Session;
 
     // if user is not logged in he is not able create new room
@@ -24,6 +24,8 @@ const createHandler = (socket: Socket) => {
 
     // or user was not found in db
     if (!user) return;
+
+    if (value/5 > user.balance) return;
 
     // creates new instance of the game
     var room = new Room();
@@ -36,8 +38,9 @@ const createHandler = (socket: Socket) => {
     room.deck = [];
     room.cardsOnTable = [];
     room.roomOptions = {
-      smallBlind: SMALL_BLIND,
-      bigBlind: BIG_BLIND,
+      smallBlind: value/200,
+      bigBlind: value/100,
+      starting_balance:value
     };
     room.currentPlayerId = undefined;
     room.creatorUserId = user._id;

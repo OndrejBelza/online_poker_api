@@ -50,6 +50,7 @@ usersRouter.post("/registration", async (req, res) => {
     const user = new User({
       ...validatedArgs,
       password: await argon2.hash(validatedArgs.password),
+      balance: 10000
     });
 
     // save it to db
@@ -107,6 +108,7 @@ usersRouter.get("/me", async (req, res) => {
         username: user.username,
         email: user.email,
         id: user.id,
+        balance: user.balance
       });
   }
   return res.send();

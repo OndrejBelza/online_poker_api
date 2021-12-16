@@ -27,8 +27,9 @@ interface Room {
 }
 
 interface Room_Options {
-  bigBlind: Number;
-  smallBlind: Number;
+  bigBlind: number;
+  smallBlind: number;
+  starting_balance: number;
 }
 
 export const roomSchema = new mongoose.Schema<Room>(

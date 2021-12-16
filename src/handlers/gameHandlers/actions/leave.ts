@@ -5,6 +5,7 @@ import { Session } from "../../../types/session";
 
 const leaveHandler = (socket: Socket) => {
     socket.on("leave_table",async (id)=>{
+      try {
         const session = (socket.request as Request).session as Session;
     
         // if user is not logged in we will not join him to the game
@@ -34,7 +35,9 @@ const leaveHandler = (socket: Socket) => {
           .emit("user_has_left", `${user.username} has left the room`);
     
         socket.leave(`Room_${id}`);
-    
+      } catch (err) {
+        console.log(err)
+      }
     })
 }
 

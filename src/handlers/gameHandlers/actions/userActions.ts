@@ -1,17 +1,17 @@
 import { Socket } from "socket.io";
-import { Room } from "../../../db/schema";
+import { Room, User } from "../../../db/schema";
 import roundHandler from "./round";
+// import { STARTING_BALANCE } from "../../../constants/intialGameValues";
 
 var turnCount = 1;
 
 const userActionsHandler = async (socket: Socket) => {
-    
+  try {
     //Fold
     socket.on("fold", async ({roomId, id}) => {
         if (!roomId) return;
         var room = await Room.findById(roomId);
         if (!room) return;
-
         console.log(`User ${id} folded`)
 
         let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
@@ -91,12 +91,13 @@ const userActionsHandler = async (socket: Socket) => {
         socket.in(`Room_${roomId}`).emit("player_action")
 
     });
-
+    //call
     socket.on("call", async ({roomId, id}) => {
         if (!roomId) return;
         var room = await Room.findById(roomId);
         if (!room) return;
-
+        var user = await User.findById(id);
+        if (!user) return;
         console.log(`User ${id} called`)
 
         let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
@@ -106,15 +107,16 @@ const userActionsHandler = async (socket: Socket) => {
                 currentPlayers[i]!.current_action = "call"
                 if (!currentPlayers[i]!.currentBet) currentPlayers[i]!.currentBet = 0;
                 if (currentPlayers[i]!.currentBet! > currentPlayers[i]!.currentBalance) {
+                    user.balance -= currentPlayers[i]!.currentBalance;
                     room.pot += currentPlayers[i]!.currentBalance;
                     currentPlayers[i]!.currentBet =currentPlayers[i]!.currentBalance;
                     currentPlayers[i]!.currentBalance = 0;
                 } else {
                     currentPlayers[i]!.currentBalance -= (room.currentRoundBet - currentPlayers[i]!.currentBet!);
+                    user.balance -= (room.currentRoundBet - currentPlayers[i]!.currentBet!)
                     room.pot += (room.currentRoundBet - currentPlayers[i]!.currentBet!);
                     currentPlayers[i]!.currentBet = room.currentRoundBet;
                 }
-                
                 currentPlayers[(i+1)%currentPlayers.length]!.turn = true;
                 break;
             }
@@ -140,18 +142,20 @@ const userActionsHandler = async (socket: Socket) => {
             turnCount++;
         }
 
-        
+        await user.save();
         await room.save();
 
         socket.emit("player_action");
         socket.in(`Room_${roomId}`).emit("player_action")
 
     });
-
+    //bet/rise
     socket.on("bet/rise", async ({roomId,id,value}) => {
         if (!roomId) return;
         var room = await Room.findById(roomId);
         if (!room) return;
+        var user = await User.findById(id);
+        if (!user) return;
 
         console.log(`User ${id} rised/bet ${value}`)
         let currentPlayers = room.players.filter(player=>player.current_action !== "fold");
@@ -163,6 +167,7 @@ const userActionsHandler = async (socket: Socket) => {
                 if (!currentPlayers[i]!.currentBet) currentPlayers[i]!.currentBet = 0;
                 room.currentRoundBet = value;
                 currentPlayers[i]!.currentBalance -= (value - currentPlayers[i]!.currentBet!);
+                user.balance -= (value - currentPlayers[i]!.currentBet!);
                 room.pot += (room.currentRoundBet - currentPlayers[i]!.currentBet!);
                 currentPlayers[i]!.currentBet = room.currentRoundBet;
                 currentPlayers[(i+1)%currentPlayers.length]!.turn = true;
@@ -178,6 +183,8 @@ const userActionsHandler = async (socket: Socket) => {
             }
         })
         room.markModified("players");
+
+        await user.save();
         await room.save();
         //start betting Round
         turnCount = 2;
@@ -185,7 +192,9 @@ const userActionsHandler = async (socket: Socket) => {
         socket.emit("player_action");
         socket.in(`Room_${roomId}`).emit("player_action")
     });
-  
+  } catch (err) {
+      console.log(err)
+  }
 };
 
 export default userActionsHandler;
