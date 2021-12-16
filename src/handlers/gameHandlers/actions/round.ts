@@ -1,7 +1,5 @@
 
 import { Socket } from "socket.io";
-import { Request } from "express";
-import { Session } from "../../../types/session";
 import { Room, User } from "../../../db/schema";
 // @ts-ignore
 import { Hand } from 'pokersolver';
@@ -14,11 +12,6 @@ const roundHandler = async (socket: Socket, id: String) => {
 
     // if room doesn't exist we will not join him to the game
     if (!room) return;
-
-    const session = (socket.request as Request).session as Session;
-    if (!session.userId) return;
-    var user = await User.findById(session.userId);
-    if (!user) return;
 
     switch (room.rndCnt) {
         case 0:
@@ -88,7 +81,12 @@ const roundHandler = async (socket: Socket, id: String) => {
             for (let player of room.players) {
                 if (player.userId.toString()===winner[0].userId.toString()){
                     player.currentBalance += room.pot
-                    user.balance += room.pot ;
+                    
+                    var user = await User.findById(player.userId.toString());
+                    if (user) {
+                        user!.balance += room.pot ;
+                        await user.save();  
+                    }
                 }
             }
             let winningCards = []
@@ -146,7 +144,7 @@ const roundHandler = async (socket: Socket, id: String) => {
     }
 
     room.markModified("players");
-    await user.save();
+    
     await room.save();
     socket.emit("round_started")
     socket.in(`Room_${id}`).emit("round_started")
