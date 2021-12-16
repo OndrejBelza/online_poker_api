@@ -20,6 +20,7 @@ interface GameData {
   id: string;
   gameState: "WAITING" | "IN_PROGRESS" | "FINISHED";
   currentPot: number;
+  blind: number;
   cardsOnTable: Card[];
   players: Player[];
   currentPlayerId: string | undefined;
@@ -52,6 +53,7 @@ const loadDataHandler = (socket: Socket) => {
       gameState: room.gameState,
       currentPlayerId: user._id.toString(),
       currentPot: room.pot,
+      blind: room.roomOptions.bigBlind,
       currentRoundBet: room.currentRoundBet,
       cardsOnTable: room.cardsOnTable,
       players: room.players.map((u) => {

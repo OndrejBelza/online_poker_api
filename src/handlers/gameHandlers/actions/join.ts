@@ -1,8 +1,9 @@
 import { Request } from "express";
 import { Socket } from "socket.io";
-import { STARTING_BALANCE } from "../../../constants/intialGameValues";
+// import { STARTING_BALANCE } from "../../../constants/intialGameValues";
 import { Room, User } from "../../../db/schema";
 import { Session } from "../../../types/session";
+import startGame from "./startGame";
 import { findFirstPosition } from "./utils/positionUtils";
 
 const joinHandler = (socket: Socket) => {
@@ -29,13 +30,20 @@ const joinHandler = (socket: Socket) => {
     // if room doesn't exist we will not join him to the game
     if (!room) return;
 
+    var startingBalance;
+    if (user.balance < room.roomOptions.starting_balance) {
+      startingBalance = user.balance
+    } else {
+      startingBalance = room.roomOptions.starting_balance
+    }
+
     room.players.push({
       userId: user._id,
       username: user.username,
       position: findFirstPosition(room.players),
       turn: false,
-      current_action: null,
-      currentBalance: STARTING_BALANCE,
+      current_action: "fold",
+      currentBalance: startingBalance,
       currentBet: undefined,
       currentHand: undefined,
     });
@@ -47,6 +55,10 @@ const joinHandler = (socket: Socket) => {
     socket
       .in(`Room_${id}`)
       .emit("user_has_joined", `New user ${user.username} has joined`);
+
+    if (room.players.length > 2 && room.gameState === "WAITING"){
+      startGame(socket,id)
+    }
   });
 };
 

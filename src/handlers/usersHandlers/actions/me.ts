@@ -25,6 +25,7 @@ const meHandler = (socket: Socket) => {
       data: {
         username: user.username,
         email: user.email,
+        balance: user.balance
       },
     });
   });
