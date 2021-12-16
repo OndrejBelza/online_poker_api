@@ -26,7 +26,7 @@ const leaveHandler = (socket: Socket) => {
         } else {
           return
         }
-        
+        room.markModified("players");
         await room.save();
     
         socket

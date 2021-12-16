@@ -33,6 +33,8 @@ const joinHandler = (socket: Socket) => {
       userId: user._id,
       username: user.username,
       position: findFirstPosition(room.players),
+      turn: false,
+      current_action: null,
       currentBalance: STARTING_BALANCE,
       currentBet: undefined,
       currentHand: undefined,

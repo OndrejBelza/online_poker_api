@@ -32,6 +32,7 @@ const createHandler = (socket: Socket) => {
     room.rndCnt = 0;
     room.gameState = "WAITING";
     room.roomType = opts.gameType;
+    room.pot = 0;
     room.deck = [];
     room.cardsOnTable = [];
     room.roomOptions = {
@@ -40,6 +41,7 @@ const createHandler = (socket: Socket) => {
     };
     room.currentPlayerId = undefined;
     room.creatorUserId = user._id;
+    room.currentRoundBet = 0;
     room.players = [];
 
     await room.save();
